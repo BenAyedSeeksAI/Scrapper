@@ -35,8 +35,9 @@ def getApp():
 def update_graph(value):
     ans, headers = getData(chunk_size=8, url=url)
     df = pandas_reader(ans, headers)
-    dff = df[ df["Country"] == value]
-    return px.bar(dff, x=headers, y=df[df["Country"] == value])
+    dff = df[ df["Country"] == value].values.tolist()[0]
+    fig = px.bar(x=["population", "gdp per capita"], y=[dff[5],dff[6]],labels={"x":"signs","y":"values"})
+    return fig
 
 if __name__ == "__main__":
     app = getApp()
