@@ -1,4 +1,6 @@
 from bs4 import BeautifulSoup
+from dash import Dash, html, dcc, callback, Output, Input
+import plotly.express as px
 import requests
 import pandas as pd
 url = "https://www.worldometers.info/gdp/gdp-by-country/"
@@ -20,12 +22,25 @@ def pandas_reader(data, headers):
     df["GDP  per capita "] = df["GDP  per capita "].str.replace(",","")
     df["GDP  per capita "] = df["GDP  per capita "].str.replace("$","").astype(int)
     return df
-    
+def getApp():
+    ans, headers = getData(chunk_size=8, url=url)
+    df = pandas_reader(ans, headers)
+    app = Dash(__name__)
+    content = [html.H1(children="Title of the dash app"),
+               dcc.Dropdown(df["Country"].unique(),"Tunisia", id="dropdown-selection"),
+               dcc.Graph(id="graph-content")]
+    app.layout = html.Div(content)
+    return app
+@callback(Output("graph-content","figure"),Input("dropdown-selection","value"))
+def update_graph(value):
+    ans, headers = getData(chunk_size=8, url=url)
+    df = pandas_reader(ans, headers)
+    dff = df[ df["Country"] == value]
+    return px.bar(dff, x=headers, y=df[df["Country"] == value])
 
-ans, headers = getData(chunk_size=8, url=url)
-print(headers)
-df = pandas_reader(ans, headers)
-print(df[df["Country"] == "Tunisia"])
+if __name__ == "__main__":
+    app = getApp()
+    app.run(debug=True)
 
 
 
